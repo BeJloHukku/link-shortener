@@ -13,6 +13,6 @@ def retry(times: int, exception):
                 except exception:
                     print(f"Try {attempt + 1} to generate slug was failed")
                 attempt += 1
-            return await func(*args, **kwargs)
+            raise exception
         return wrapper
     return decorator

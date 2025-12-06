@@ -9,3 +9,6 @@ class NoLongUrlFoundError(ShortenetBaseError):
 
 class SlugAlreadyExistError(ShortenetBaseError):
     pass
+
+class WrongUrlGivenError(ShortenetBaseError):
+    pass
