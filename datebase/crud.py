@@ -9,6 +9,7 @@ from exeptions import SlugAlreadyExistError
 async def add_slug_to_datebase(
         slug: str,
         long_url: str,
+        exception: type[Exception] = SlugAlreadyExistError,
 ):
     async with new_session() as session:
         new_slug = ShortUrl (
@@ -19,7 +20,7 @@ async def add_slug_to_datebase(
         try:
             await session.commit()
         except IntegrityError:
-            raise SlugAlreadyExistError
+            raise exception
 
 async def get_long_url_by_slug_from_database(slug: str,):
     async with new_session() as session:
