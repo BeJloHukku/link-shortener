@@ -1,5 +1,5 @@
 
-from datebase.models import ShortUrl
+from src.datebase.models import ShortUrl
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -27,5 +27,5 @@ async def get_long_url_by_slug_from_database(slug: str, session: AsyncSession):
     query = select(ShortUrl).filter_by(slug=slug)
     result = await session.execute(query)
     res: ShortUrl | None = result.scalar_one_or_none()
-    return res.long_url if res.long_url else None
+    return res.long_url if res else None
     
