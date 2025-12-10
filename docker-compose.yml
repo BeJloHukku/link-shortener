@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports: 
-      - "6532:5432"
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -16,7 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
   
   api:
-    build: .
+    image: bejlohukku/link-shortener:latest
     depends_on:
       db:
         condition: service_healthy
