@@ -4,7 +4,8 @@ from typing import Annotated, AsyncGenerator
 from pydantic import BaseModel, HttpUrl, Field
 
 from fastapi import Depends, FastAPI, Body, HTTPException, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.datebase.db import engine, new_session
 from src.datebase.models import Base
@@ -22,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 class CustomLinkScheme(BaseModel):
     origin_url: HttpUrl
     custom_url: str = Field(min_length=3, max_length=20, pattern=r"^[a-zA-Z0-9_-]+$")
@@ -29,6 +32,11 @@ class CustomLinkScheme(BaseModel):
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with new_session() as session:
         yield session
+
+
+@app.get("/")
+async def root():
+    return FileResponse("static/index.html")
 
 
 @app.post("/shorten_url")

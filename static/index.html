@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="container-title">Сократитель ссылок</h1>
+        
+        <div class="card">
+            <h2>Создать короткую ссылку</h2>
+            <form id="shortUrlForm">
+                <input 
+                    class="input"
+                    type="url" 
+                    id="longUrl" 
+                    placeholder="https://example.com" 
+                    required
+                >
+                <button class="button" type="submit">Сократить</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Создать пользовательскую ссылку</h2>
+            <form id="customUrlForm">
+                <input 
+                    class="input"
+                    type="url" 
+                    id="customOriginUrl" 
+                    placeholder="https://example.com" 
+                    required
+                >
+                <input
+                    class="input" 
+                    type="text" 
+                    id="customSlug" 
+                    placeholder="my-custom-link" 
+                    pattern="[a-zA-Z0-9_-]{3,20}"
+                    title="3-20 символов: латиница, цифры, _ и -"
+                    required
+                >
+                <button class="button" type="submit">Создать</button>
+            </form>
+        </div>
+
+        <div id="result" class="card card-result hidden">
+            <h3 class="result-title">Готово!</h3>
+            <div class="result-url">
+                <a class="link"id="resultLink" href="#" target="_blank"></a>
+                <button class="button" id="copyBtn" class="copy-btn">Копировать</button>
+            </div>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
