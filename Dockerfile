@@ -15,7 +15,6 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 COPY src ./src
-COPY static ./static 
 
 EXPOSE 8000
 
