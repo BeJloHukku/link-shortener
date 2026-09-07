@@ -4,8 +4,8 @@ from typing import Annotated, AsyncGenerator
 from pydantic import BaseModel, HttpUrl, Field
 
 from fastapi import Depends, FastAPI, Body, HTTPException, status
-from fastapi.responses import RedirectResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from src.datebase.db import engine, new_session
 from src.datebase.models import Base
@@ -22,6 +22,17 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://url-shortener-frontend-b315.onrender.com", 
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class CustomLinkScheme(BaseModel):
     origin_url: HttpUrl
