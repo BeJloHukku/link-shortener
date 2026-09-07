@@ -34,7 +34,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 @app.get("/")
 async def root():
-    return FileResponse("static/index.html")
+    return {"status": "ok"}
 
 
 @app.post("/shorten_url")
