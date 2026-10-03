@@ -6,7 +6,7 @@ RUN pip install uv
 
 COPY pyproject.toml uv.lock README.md ./
 
-RUN uv sync --frozen
+RUN uv sync --frozen --no-dev
 
 FROM python:3.14.8-slim
 

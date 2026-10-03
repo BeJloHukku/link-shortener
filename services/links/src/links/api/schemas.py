@@ -1,4 +1,8 @@
-from pydantic import BaseModel, HttpUrl, Field
+from pydantic import (
+    BaseModel,
+    Field,
+    HttpUrl,
+)
 
 
 class CustomLinkScheme(BaseModel):
