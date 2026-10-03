@@ -1,4 +1,5 @@
 import pytest
+
 from links.domain.exceptions import WrongUrlGivenError
 from links.domain.validation import validate_url
 
@@ -8,6 +9,7 @@ def test_validate_url():
     result_simple = validate_url("https://vehicle-monitoring.ru")
     assert result_www is None
     assert result_simple is None
+
 
 def test_validate_url_wrong_url():
     with pytest.raises(WrongUrlGivenError):

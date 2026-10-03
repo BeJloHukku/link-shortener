@@ -15,6 +15,26 @@ uv sync --frozen
 uv run uvicorn links.main:app --app-dir src --reload
 ```
 
+## Линтер и форматирование
+
+Команды выполняются из `services/links`:
+
+```bash
+uv run isort . --check-only
+uv run ruff check .
+uv run ruff format --check .
+```
+
+Для автоматического исправления и форматирования:
+
+```bash
+uv run ruff check . --fix
+uv run isort .
+uv run ruff format .
+```
+
+Ruff настроен в `pyproject.toml`: Python 3.14, длина строки 100 символов, правила `E4`, `E7`, `E9` и `F` для базовых ошибок и неиспользуемых импортов. Сортировкой импортов занимается isort: при двух и более именах из одного модуля используются скобки, отдельные строки и завершающая запятая (`force_grid_wrap = 2`). Ruff сохраняет это оформление благодаря `skip-magic-trailing-comma = false`. Проверяется исходный код и тесты. Подробнее: [документация Ruff](https://docs.astral.sh/ruff/configuration/).
+
 ## Тесты
 
 ```bash

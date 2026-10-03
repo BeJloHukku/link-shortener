@@ -14,5 +14,7 @@ def retry(times: int, exception):
                     print(f"Try {attempt + 1} to generate slug was failed")
                 attempt += 1
             raise exception
+
         return wrapper
+
     return decorator

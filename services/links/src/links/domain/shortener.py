@@ -1,7 +1,6 @@
 import string
 from secrets import choice
 
-
 ALPHABET: str = string.ascii_letters + string.digits
 
 
