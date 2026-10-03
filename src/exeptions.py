@@ -1,18 +1,18 @@
-class ShortenetBaseError(Exception):
+class ShortenerBaseError(Exception):
     pass
 
 
-class NoLongUrlFoundError(ShortenetBaseError):
+class NoLongUrlFoundError(ShortenerBaseError):
     pass
 
 
-class SlugAlreadyExistError(ShortenetBaseError):
+class SlugAlreadyExistError(ShortenerBaseError):
     pass
 
 
-class CusomUrlAlreadyExistError(ShortenetBaseError):
+class CusomUrlAlreadyExistError(ShortenerBaseError):
     pass
 
 
-class WrongUrlGivenError(ShortenetBaseError):
+class WrongUrlGivenError(ShortenerBaseError):
     pass
