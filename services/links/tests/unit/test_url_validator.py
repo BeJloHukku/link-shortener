@@ -1,6 +1,6 @@
 import pytest
-from src.exeptions import WrongUrlGivenError
-from src.url_validator import validate_url
+from links.domain.exceptions import WrongUrlGivenError
+from links.domain.validation import validate_url
 
 
 def test_validate_url():

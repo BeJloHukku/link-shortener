@@ -1,160 +1,85 @@
-# Link Shortener (Сокращатель ссылок)
+# Link Shortener
 
-Современный сервис для сокращения URL-адресов с веб-интерфейсом и REST API.
+Сервис сокращения ссылок на Python 3.14.8, FastAPI и SQLAlchemy с PostgreSQL.
 
-## Возможности
+## Структура
 
-- Автоматическая генерация коротких ссылок
-- Создание пользовательских URL (custom slugs)
-- Быстрое перенаправление с кешированием
-- PostgreSQL для надежного хранения данных
-- Полная контейнеризация с Docker
-- Современный веб-интерфейс
-- REST API с документацией
+```text
+services/
+  links/                  # Самостоятельное приложение сокращения ссылок
+    src/links/
+      main.py             # Сборка FastAPI-приложения
+      settings.py         # Настройки БД и CORS
+      api/                # Маршруты, HTTP-схемы и зависимости
+      application/        # Бизнес-сценарии и интерфейс репозитория
+      domain/             # Генерация slug, валидация и исключения
+      infrastructure/     # SQLAlchemy, модели и реализация репозитория
+    tests/                # Unit- и интеграционные тесты
+    migrations/           # Место для будущих миграций
+    pyproject.toml
+    uv.lock
+    Dockerfile
+  analytics/              # Место для будущего сервиса аналитики
+contracts/                # HTTP-контракты и схемы событий
+infra/compose.yaml        # Локальный запуск сервисов
+tests/e2e/               # Место для будущих сквозных тестов
+docs/architecture.md     # Границы компонентов и сервисов
+```
 
-## Технологии
+## Запуск через Docker
 
-- **Backend**: Python 3.13, FastAPI, SQLAlchemy (async)
-- **Database**: PostgreSQL 17
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Containerization**: Docker, Docker Compose
-- **Package Manager**: uv
-
-## Установка и запуск
-
-### С Docker (рекомендуется)
+Из корня репозитория:
 
 ```bash
-# Клонировать репозиторий
-git clone https://github.com/BeJloHukku/link-shortener.git
-cd link-shortener
-
-# Запустить с Docker Compose
-docker-compose up
+docker compose -f infra/compose.yaml up --build
 ```
 
-Сервис будет доступен по адресу: **http://localhost:8000**
+API: http://localhost:8000. Swagger UI: http://localhost:8000/docs.
+Образ собирается из `services/links`; PostgreSQL хранит данные в томе `postgres_data`.
+При переходе с прежнего Compose сохраняйте прежнее имя Compose-проекта через `-p`, чтобы использовать существующий том.
 
-### Локальная разработка
+## Локальная разработка
+
+Из корня запустите PostgreSQL:
 
 ```bash
-# Установить зависимости
-pip install uv
-uv sync
-
-# Запустить PostgreSQL в Docker
-docker-compose up db
-
-# Активировать виртуальное окружение
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-
-# Запустить сервер
-uvicorn src.main:app --reload
+docker compose -f infra/compose.yaml up -d db
 ```
 
-## API Documentation
-
-После запуска документация доступна по адресу:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-### Основные эндпоинты
-
-#### POST `/shorten_url` - Создать короткую ссылку
-```json
-{
-  "long_url": "https://example.com"
-}
-```
-
-**Ответ:**
-```json
-{
-  "data": "/abc123"
-}
-```
-
-#### POST `/custom_url` - Создать пользовательскую ссылку
-```json
-{
-  "origin_url": "https://example.com",
-  "custom_url": "my-link"
-}
-```
-
-**Ответ:**
-```json
-{
-  "data": "/my-link"
-}
-```
-
-#### GET `/{slug}` - Перенаправление
-Перенаправляет на оригинальный URL.
-
-## Веб-интерфейс
-
-Интерфейс доступен на главной странице и предоставляет:
-- Форму для создания автоматических коротких ссылок
-- Форму для создания пользовательских URL
-- Копирование ссылок в буфер обмена
-- Адаптивный дизайн для мобильных устройств
-
-## Тестирование
+Затем перейдите в каталог сервиса:
 
 ```bash
-# Запустить тесты
-pytest
-
-# С покрытием
-pytest --cov=src
+cd services/links
+uv sync --frozen
+uv run uvicorn links.main:app --app-dir src --reload
 ```
 
-## Структура проекта
+Настройки подключения читаются из переменных окружения `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`. Пример значений — `services/links/.env.example`. Файл `.env` автоматически не загружается: передавайте переменные через окружение или настройки запуска.
 
-```
-link-shortener/
-├── src/
-│   ├── datebase/
-│   │   ├── crud.py          # CRUD операции
-│   │   ├── db.py            # Подключение к БД
-│   │   └── models.py        # SQLAlchemy модели
-│   ├── exeptions.py         # Кастомные исключения
-│   ├── main.py              # FastAPI приложение
-│   ├── retry_decorator.py   # Декоратор для retry логики
-│   ├── service.py           # Бизнес-логика
-│   ├── shortener.py         # Генерация slug
-│   └── url_validator.py     # Валидация URL
-├── static/
-│   ├── index.html           # Веб-интерфейс
-│   ├── script.js            # Клиентская логика
-│   └── style.css            # Стили
-├── tests/                   # Тесты
-├── Dockerfile               # Docker образ
-├── docker-compose.yml       # Docker Compose конфигурация
-├── pyproject.toml           # Зависимости проекта
-└── pytest.ini               # Конфигурация pytest
-```
+## API
 
-## Docker Hub
+- `GET /` — `{"status": "ok"}`.
+- `POST /shorten_url` — тело `{"long_url": "https://example.com"}`.
+- `POST /custom_url` — тело `{"origin_url": "https://example.com", "custom_url": "my-link"}`.
+- `GET /{slug}` — перенаправление на исходный URL с кодом 302.
 
-Образ доступен на Docker Hub:
+Оба метода создания возвращают `{"data": "slug"}`. Маршруты, коды ответа, валидация и настройки CORS сохранены.
+
+## Тесты
+
+Из каталога `services/links`:
+
 ```bash
-docker pull bejlohukku/link-shortener:latest
+uv run pytest
+uv run pytest --cov=links
 ```
 
-## Автор
+Из корня с уже подготовленным окружением сервиса:
 
-**BeJloHukku**
+```bash
+services/links/.venv/bin/python -m pytest
+```
 
-- GitHub: [@BeJloHukku](https://github.com/BeJloHukku)
-- Docker Hub: [bejlohukku](https://hub.docker.com/u/bejlohukku)
+Интеграционные тесты используют отдельную SQLite в памяти и не изменяют PostgreSQL или файл `test.db`.
 
-## Вклад
-
-Pull requests приветствуются! Для крупных изменений сначала откройте issue для обсуждения.
-
----
-
-⭐️ Если проект понравился, поставьте звезду на GitHub!
+Миграции Alembic и сервис аналитики пока не подключены. Приложение по-прежнему создаёт отсутствующие таблицы через `create_all` при запуске.

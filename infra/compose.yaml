@@ -15,8 +15,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
   
-  api:
-    image: bejlohukku/link-shortener:latest
+  links:
+    build:
+      context: ../services/links
     depends_on:
       db:
         condition: service_healthy

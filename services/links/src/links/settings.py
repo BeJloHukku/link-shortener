@@ -1,4 +1,3 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 import os
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -9,11 +8,7 @@ DB_NAME = os.getenv("DB_NAME", "postgres")
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_async_engine(
-    url=DATABASE_URL
-)
-
-new_session = async_sessionmaker(bind=engine, expire_on_commit=False)
-
-
-
+CORS_ORIGINS = [
+    "https://url-shortener-frontend-b315.onrender.com",
+    "http://localhost:3000",
+]

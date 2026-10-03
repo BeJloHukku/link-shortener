@@ -1,0 +1,58 @@
+from httpx import AsyncClient
+from pydantic import HttpUrl
+import pytest
+
+from links.domain.exceptions import CusomUrlAlreadyExistError, WrongUrlGivenError
+from links.application.use_cases import generate_custom_link, generate_short_url, get_url_by_slug
+from links.infrastructure.repository import get_long_url_by_slug_from_database
+
+async def test_generate_short_url(session, repository):
+    result = await generate_short_url("https://google.com", repository)
+    assert type(result) is str
+    assert len(result) == 6
+
+async def test_generate_short_url_already_exist(session, repository):
+    pass
+
+async def test_generate_short_url_wrong_url_error(session, repository):
+    with pytest.raises(WrongUrlGivenError):
+        await generate_short_url("not-a-url", repository)
+
+async def test_generate_custom_link(session, repository):
+    class CustomLinkData:
+        origin_url = HttpUrl("https://google.com/")
+        custom_url = "mylink"
+
+    result = await generate_custom_link(CustomLinkData(), repository)
+    assert type(result) is str
+    assert result == "mylink"
+    
+    long_url = await get_long_url_by_slug_from_database(result, session)
+    assert long_url == "https://google.com/"
+
+async def test_generate_custom_link_already_exist_error(session, repository):
+    class CustomLinkData:
+        origin_url = HttpUrl("https://google.com/")
+        custom_url = "repeat"
+    
+    await generate_custom_link(CustomLinkData(), repository)
+
+    with pytest.raises(CusomUrlAlreadyExistError):
+        await generate_custom_link(CustomLinkData(), repository)
+    
+
+async def test_get_url_by_slug(session, repository):
+    slug = await generate_short_url("https://google.com", repository)
+    result = await get_url_by_slug(slug, repository)
+    assert result == "https://google.com"
+
+
+async def test_get_url_by_custom(session, repository):
+    class CustomLinkData:
+        origin_url = HttpUrl("https://google.com/")
+        custom_url = "google"
+    custom_link = await generate_custom_link(CustomLinkData(), repository)
+    result = await get_url_by_slug(custom_link, repository)
+    assert result == "https://google.com/"
+
+

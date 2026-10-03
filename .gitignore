@@ -33,3 +33,4 @@ htmlcov/
 # Misc
 *.log
 .DS_Store
+.env*

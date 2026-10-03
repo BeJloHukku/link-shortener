@@ -1,6 +1,7 @@
 from httpx import ASGITransport, AsyncClient
-from src.datebase.models import Base
-from src.main import app, get_session
+from links.infrastructure.models import Base
+from links.main import app
+from links.api.dependencies import get_session
 
 from typing import AsyncGenerator
 
@@ -10,7 +11,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 import pytest
 
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(
     url=DATABASE_URL
@@ -41,3 +42,9 @@ async def session():
 async def ac() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
+
+@pytest.fixture
+def repository(session):
+    from links.infrastructure.repository import SqlAlchemyLinkRepository
+
+    return SqlAlchemyLinkRepository(session)
