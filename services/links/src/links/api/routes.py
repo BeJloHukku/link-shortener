@@ -13,7 +13,7 @@ from fastapi.responses import RedirectResponse
 from links.api.dependencies import get_redirect_use_case
 from links.application.use_cases import GetRedirectUseCase
 from links.api.dependencies import get_repository
-from links.api.schemas import CustomLinkScheme
+from links.api.schemas import CustomLinkScheme, LinkSchema
 from links.application.ports import LinkRepository
 from links.application.use_cases import (
     generate_custom_link,
@@ -22,7 +22,6 @@ from links.application.use_cases import (
 from links.domain.exceptions import (
     NoLongUrlFoundError,
     SlugAlreadyExistError,
-    WrongUrlGivenError,
     LinkAlreadyExistError,
 )
 
@@ -36,19 +35,15 @@ async def root():
 
 @router.post("/shorten_url")
 async def generate_slug(
-    long_url: Annotated[str, Body(embed=True)],
+    link: LinkSchema,
     repository: Annotated[LinkRepository, Depends(get_repository)],
 ):
     try:
-        new_slug = await generate_short_url(long_url, repository)
+        new_slug = await generate_short_url(str(link.origin_url), repository)
     except SlugAlreadyExistError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось сжать ссылку. Попробуйте позже!",
-        )
-    except WrongUrlGivenError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Неверный формат ввода!"
         )
     return {"data": new_slug}
 
@@ -61,11 +56,6 @@ async def create_custom_link(
     try:
         custom_link = await generate_custom_link(data, repository)
         return {"data": custom_link}
-    except WrongUrlGivenError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный формат ввода!",
-        )
     except LinkAlreadyExistError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

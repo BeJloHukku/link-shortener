@@ -1,10 +1,10 @@
 import pytest
 from pydantic import HttpUrl
 
+
 from links.application.use_cases import (
     generate_custom_link,
     generate_short_url,
-    get_url_by_slug,
 )
 from links.domain.exceptions import (
     LinkAlreadyExistError,
@@ -52,17 +52,35 @@ async def test_generate_custom_link_already_exist_error(session, repository):
         await generate_custom_link(CustomLinkData(), repository)
 
 
-async def test_get_url_by_slug(session, repository):
+async def test_get_url_by_slug(
+    session,
+    repository,
+    mock_cache,
+    mock_broker,
+    redirect_use_case,
+):
     slug = await generate_short_url("https://google.com", repository)
-    result = await get_url_by_slug(slug, repository)
+    result = await redirect_use_case.execute(slug)
     assert result == "https://google.com"
 
+    mock_cache.save_link.assert_called_once()
+    mock_broker.publish_accessed_link_event.assert_called_once()
 
-async def test_get_url_by_custom(session, repository):
+
+async def test_get_url_by_custom(
+    session,
+    repository,
+    mock_cache,
+    mock_broker,
+    redirect_use_case,
+):
     class CustomLinkData:
         origin_url = HttpUrl("https://google.com/")
         custom_url = "google"
 
     custom_link = await generate_custom_link(CustomLinkData(), repository)
-    result = await get_url_by_slug(custom_link, repository)
+    result = await redirect_use_case.execute(custom_link)
     assert result == "https://google.com/"
+
+    mock_cache.save_link.assert_called_once()
+    mock_broker.publish_accessed_link_event.assert_called_once()
