@@ -1,5 +1,7 @@
-from links.application.ports import LinkRepository
+from links.application.ports import LinkRepository, CacheRepository, MessageBroker
 from links.application.retry import retry
+from links.application.dto import LinkWithSlugDTO
+from links.application.config import RedirectWorkerConfig
 from links.domain.exceptions import (
     NoLongUrlFoundError,
     SlugAlreadyExistError,
@@ -36,3 +38,35 @@ async def generate_custom_link(data, repository: LinkRepository) -> str:
         raise WrongUrlGivenError
     await repository.add(custom_url, origin_url)
     return custom_url
+
+
+class GetRedirectUrlUseCase:
+    def __init__(
+        self,
+        db: LinkRepository,
+        cache: CacheRepository,
+        broker: MessageBroker,
+    ) -> None:
+        self.db = db
+        self.cache = cache
+        self.broker = broker
+
+    async def execute(self, slug: str) -> str:
+        cached_link = await self.cache.get_and_refresh_link(slug)
+
+        if cached_link is not None:
+            if cached_link.ttl < RedirectWorkerConfig.UPDATE_THRESHOLD_SEC:
+                await self.broker.publish_accessed_link_event(slug)
+            return cached_link.origin_url
+
+        origin_url = await self.db.get_long_url(slug)
+
+        if origin_url is None:
+            raise NoLongUrlFoundError()
+
+        link_dto = LinkWithSlugDTO(slug=slug, origin_url=origin_url)
+        await self.cache.save_link(link_dto)
+
+        await self.broker.publish_accessed_link_event(slug)
+
+        return origin_url
