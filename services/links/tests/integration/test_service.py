@@ -7,7 +7,7 @@ from links.application.use_cases import (
     get_url_by_slug,
 )
 from links.domain.exceptions import (
-    CusomUrlAlreadyExistError,
+    LinkAlreadyExistError,
     WrongUrlGivenError,
 )
 from links.infrastructure.repository import get_long_url_by_slug_from_database
@@ -48,7 +48,7 @@ async def test_generate_custom_link_already_exist_error(session, repository):
 
     await generate_custom_link(CustomLinkData(), repository)
 
-    with pytest.raises(CusomUrlAlreadyExistError):
+    with pytest.raises(LinkAlreadyExistError):
         await generate_custom_link(CustomLinkData(), repository)
 
 

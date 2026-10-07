@@ -1,7 +1,6 @@
 from links.application.ports import LinkRepository
 from links.application.retry import retry
 from links.domain.exceptions import (
-    CusomUrlAlreadyExistError,
     NoLongUrlFoundError,
     SlugAlreadyExistError,
     WrongUrlGivenError,
@@ -35,8 +34,5 @@ async def generate_custom_link(data, repository: LinkRepository) -> str:
         validate_url(origin_url)
     except WrongUrlGivenError:
         raise WrongUrlGivenError
-    try:
-        await repository.add(custom_url, origin_url, CusomUrlAlreadyExistError)
-        return custom_url
-    except CusomUrlAlreadyExistError:
-        raise CusomUrlAlreadyExistError
+    await repository.add(custom_url, origin_url)
+    return custom_url

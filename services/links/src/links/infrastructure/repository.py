@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from links.domain.exceptions import SlugAlreadyExistError
+from links.domain.exceptions import LinkAlreadyExistError
 from links.infrastructure.models import ShortUrl
 
 
@@ -10,7 +10,6 @@ async def add_slug_to_datebase(
     slug: str,
     long_url: str,
     session: AsyncSession,
-    exception: type[Exception] = SlugAlreadyExistError,
 ):
     new_slug = ShortUrl(
         slug=slug,
@@ -21,7 +20,7 @@ async def add_slug_to_datebase(
         await session.commit()
     except IntegrityError:
         await session.rollback()
-        raise exception
+        raise LinkAlreadyExistError
 
 
 async def get_long_url_by_slug_from_database(slug: str, session: AsyncSession):
@@ -39,9 +38,8 @@ class SqlAlchemyLinkRepository:
         self,
         slug: str,
         long_url: str,
-        exception: type[Exception] = SlugAlreadyExistError,
     ) -> None:
-        await add_slug_to_datebase(slug, long_url, self.session, exception)
+        await add_slug_to_datebase(slug, long_url, self.session)
 
     async def get_long_url(self, slug: str) -> str | None:
         return await get_long_url_by_slug_from_database(slug, self.session)

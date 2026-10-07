@@ -14,5 +14,9 @@ class CusomUrlAlreadyExistError(ShortenerBaseError):
     pass
 
 
+class LinkAlreadyExistError(ShortenerBaseError):
+    pass
+
+
 class WrongUrlGivenError(ShortenerBaseError):
     pass

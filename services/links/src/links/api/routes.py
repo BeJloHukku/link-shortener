@@ -18,10 +18,10 @@ from links.application.use_cases import (
     get_url_by_slug,
 )
 from links.domain.exceptions import (
-    CusomUrlAlreadyExistError,
     NoLongUrlFoundError,
     SlugAlreadyExistError,
     WrongUrlGivenError,
+    LinkAlreadyExistError,
 )
 
 router = APIRouter()
@@ -63,7 +63,7 @@ async def create_custom_link(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный формат ввода!",
         )
-    except CusomUrlAlreadyExistError:
+    except LinkAlreadyExistError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Такая ссылка уже существует! Попробуйте ввести другую!",
