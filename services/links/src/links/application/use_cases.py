@@ -40,7 +40,7 @@ async def generate_custom_link(data, repository: LinkRepository) -> str:
     return custom_url
 
 
-class GetRedirectUrlUseCase:
+class GetRedirectUseCase:
     def __init__(
         self,
         db: LinkRepository,
