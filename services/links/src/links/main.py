@@ -17,6 +17,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

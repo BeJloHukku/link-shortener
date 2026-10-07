@@ -40,9 +40,9 @@ def get_cache_repository(redis: Annotated[Redis, Depends(get_redis_client)]) -> 
 
 
 def get_redirect_use_case(
-        db: Annotated[LinkRepository, Depends(get_repository)],
-        cache: Annotated[CacheRepository, Depends(get_cache_repository)],
-        broker: Annotated[MessageBroker, Depends(get_broker)],
+    db: Annotated[LinkRepository, Depends(get_repository)],
+    cache: Annotated[CacheRepository, Depends(get_cache_repository)],
+    broker: Annotated[MessageBroker, Depends(get_broker)],
 ) -> GetRedirectUseCase:
     return GetRedirectUseCase(
         db=db,

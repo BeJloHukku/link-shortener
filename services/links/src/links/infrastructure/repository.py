@@ -23,7 +23,10 @@ async def add_slug_to_datebase(
         raise LinkAlreadyExistError
 
 
-async def get_long_url_by_slug_from_database(slug: str, session: AsyncSession):
+async def get_long_url_by_slug_from_database(
+    slug: str,
+    session: AsyncSession,
+):
     query = select(ShortUrl).filter_by(slug=slug)
     result = await session.execute(query)
     res: ShortUrl | None = result.scalar_one_or_none()
@@ -39,7 +42,11 @@ class SqlAlchemyLinkRepository:
         slug: str,
         long_url: str,
     ) -> None:
-        await add_slug_to_datebase(slug, long_url, self.session)
+        await add_slug_to_datebase(
+            slug,
+            long_url,
+            self.session,
+        )
 
     async def get_long_url(self, slug: str) -> str | None:
         return await get_long_url_by_slug_from_database(slug, self.session)

@@ -12,7 +12,10 @@ from links.domain.validation import validate_url
 
 
 @retry(times=10, exception=SlugAlreadyExistError)
-async def generate_short_url(long_url: str, repository: LinkRepository) -> str:
+async def generate_short_url(
+    long_url: str,
+    repository: LinkRepository,
+) -> str:
     try:
         validate_url(long_url)
     except WrongUrlGivenError:
@@ -22,14 +25,10 @@ async def generate_short_url(long_url: str, repository: LinkRepository) -> str:
     return slug
 
 
-async def get_url_by_slug(slug: str, repository: LinkRepository) -> str:
-    long_url = await repository.get_long_url(slug)
-    if not long_url:
-        raise NoLongUrlFoundError()
-    return long_url
-
-
-async def generate_custom_link(data, repository: LinkRepository) -> str:
+async def generate_custom_link(
+    data,
+    repository: LinkRepository,
+) -> str:
     origin_url = str(data.origin_url)
     custom_url = data.custom_url
     try:

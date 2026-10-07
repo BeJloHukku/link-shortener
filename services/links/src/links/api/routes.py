@@ -9,13 +9,15 @@ from fastapi import (
 )
 from fastapi.responses import RedirectResponse
 
+
+from links.api.dependencies import get_redirect_use_case
+from links.application.use_cases import GetRedirectUseCase
 from links.api.dependencies import get_repository
 from links.api.schemas import CustomLinkScheme
 from links.application.ports import LinkRepository
 from links.application.use_cases import (
     generate_custom_link,
     generate_short_url,
-    get_url_by_slug,
 )
 from links.domain.exceptions import (
     NoLongUrlFoundError,
@@ -53,7 +55,8 @@ async def generate_slug(
 
 @router.post("/custom_url")
 async def create_custom_link(
-    data: CustomLinkScheme, repository: Annotated[LinkRepository, Depends(get_repository)]
+    data: CustomLinkScheme,
+    repository: Annotated[LinkRepository, Depends(get_repository)],
 ):
     try:
         custom_link = await generate_custom_link(data, repository)
@@ -72,10 +75,17 @@ async def create_custom_link(
 
 @router.get("/{slug}")
 async def redirect_to_origin(
-    slug: str, repository: Annotated[LinkRepository, Depends(get_repository)]
-):
+    slug: str,
+    redirect_use_case: Annotated[GetRedirectUseCase, Depends(get_redirect_use_case)],
+) -> RedirectResponse:
     try:
-        long_url = await get_url_by_slug(slug, repository)
+        origin_url = await redirect_use_case.execute(slug=slug)
     except NoLongUrlFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ссылка не существует")
-    return RedirectResponse(url=long_url, status_code=status.HTTP_302_FOUND)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ссылка не существует",
+        )
+    return RedirectResponse(
+        url=origin_url,
+        status_code=status.HTTP_302_FOUND,
+    )

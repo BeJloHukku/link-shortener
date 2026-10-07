@@ -3,7 +3,10 @@ from redis.asyncio import ConnectionPool, Redis
 from links.settings import REDIS_URL
 
 
-redis_pool = ConnectionPool.from_url(REDIS_URL, decode_responses=True)
+redis_pool = ConnectionPool.from_url(
+    REDIS_URL,
+    decode_responses=True,
+)
 
 
 async def get_redis_client() -> AsyncGenerator[Redis, None]:
