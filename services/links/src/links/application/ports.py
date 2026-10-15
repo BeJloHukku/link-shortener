@@ -1,5 +1,9 @@
 from typing import Protocol
-from links.application.dto import CachedLinkDTO, LinkWithSlugDTO
+
+from links.application.dto import (
+    CachedLinkDTO,
+    LinkWithSlugDTO,
+)
 
 
 class LinkRepository(Protocol):

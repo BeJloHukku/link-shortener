@@ -11,7 +11,6 @@ from links.domain.exceptions import (
 )
 from links.infrastructure.db.repository import get_long_url_by_slug_from_database
 
-
 pytestmark = pytest.mark.integration
 
 

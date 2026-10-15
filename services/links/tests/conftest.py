@@ -1,21 +1,28 @@
 from typing import AsyncGenerator
 from unittest.mock import create_autospec
-from redis.asyncio import Redis
-from testcontainers.community.redis import RedisContainer
 
 import pytest
 from httpx import (
     ASGITransport,
     AsyncClient,
 )
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from testcontainers.community.redis import RedisContainer
 
-from links.api.dependencies import get_session, get_broker, get_cache_repository
-from links.application.ports import CacheRepository, MessageBroker
+from links.api.dependencies import (
+    get_broker,
+    get_cache_repository,
+    get_session,
+)
+from links.application.ports import (
+    CacheRepository,
+    MessageBroker,
+)
 from links.application.use_cases import GetRedirectUseCase
 from links.infrastructure.db.models import Base
 from links.main import app

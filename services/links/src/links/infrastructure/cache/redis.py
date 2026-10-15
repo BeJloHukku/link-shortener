@@ -1,6 +1,9 @@
 from redis.asyncio import Redis
 
-from links.application.dto import LinkWithSlugDTO, CachedLinkDTO
+from links.application.dto import (
+    CachedLinkDTO,
+    LinkWithSlugDTO,
+)
 from links.domain.config import LinkExpirationPolicy
 
 

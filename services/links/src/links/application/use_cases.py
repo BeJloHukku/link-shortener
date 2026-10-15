@@ -1,6 +1,10 @@
-from links.application.ports import LinkRepository, CacheRepository, MessageBroker
-from links.application.retry import retry
 from links.application.dto import LinkWithSlugDTO
+from links.application.ports import (
+    CacheRepository,
+    LinkRepository,
+    MessageBroker,
+)
+from links.application.retry import retry
 from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import (
     NoLongUrlFoundError,

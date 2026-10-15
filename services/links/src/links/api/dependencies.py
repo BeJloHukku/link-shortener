@@ -8,14 +8,18 @@ from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from links.application.ports import LinkRepository, CacheRepository, MessageBroker
+from links.application.ports import (
+    CacheRepository,
+    LinkRepository,
+    MessageBroker,
+)
 from links.application.use_cases import GetRedirectUseCase
-from links.infrastructure.broker.rabbitmq_settings import get_rabbitmq_channel
 from links.infrastructure.broker.rabbitmq import RabbitMQBroker
-from links.infrastructure.db.db import new_session
+from links.infrastructure.broker.rabbitmq_settings import get_rabbitmq_channel
 from links.infrastructure.cache.redis import RedisCacheRepository
-from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 from links.infrastructure.cache.redis_settings import get_redis_client
+from links.infrastructure.db.db import new_session
+from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

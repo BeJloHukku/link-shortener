@@ -1,7 +1,11 @@
 from typing import AsyncGenerator
-from redis.asyncio import ConnectionPool, Redis
-from links.settings import REDIS_URL
 
+from redis.asyncio import (
+    ConnectionPool,
+    Redis,
+)
+
+from links.settings import REDIS_URL
 
 redis_pool = ConnectionPool.from_url(
     REDIS_URL,

@@ -8,20 +8,24 @@ from fastapi import (
 )
 from fastapi.responses import RedirectResponse
 
-
-from links.api.dependencies import get_redirect_use_case
-from links.application.use_cases import GetRedirectUseCase
-from links.api.dependencies import get_repository
-from links.api.schemas import CustomLinkScheme, LinkSchema
+from links.api.dependencies import (
+    get_redirect_use_case,
+    get_repository,
+)
+from links.api.schemas import (
+    CustomLinkScheme,
+    LinkSchema,
+)
 from links.application.ports import LinkRepository
 from links.application.use_cases import (
+    GetRedirectUseCase,
     generate_custom_link,
     generate_short_url,
 )
 from links.domain.exceptions import (
+    LinkAlreadyExistError,
     NoLongUrlFoundError,
     SlugAlreadyExistError,
-    LinkAlreadyExistError,
 )
 
 router = APIRouter()

@@ -1,8 +1,12 @@
 from typing import AsyncGenerator
-import aio_pika
-from aio_pika.abc import AbstractChannel, AbstractRobustConnection
-from links.settings import RABBITMQ_URL
 
+import aio_pika
+from aio_pika.abc import (
+    AbstractChannel,
+    AbstractRobustConnection,
+)
+
+from links.settings import RABBITMQ_URL
 
 rabbitmq_connection: AbstractRobustConnection | None = None
 
