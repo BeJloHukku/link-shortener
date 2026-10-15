@@ -25,12 +25,18 @@ dev = [
     "isort>=9.0.2",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.10",
+    "testcontainers[redis]>=4.15.0",
 ]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "integration: tests that need real external services",
+    "docker: tests that need real Docker containers",
+]
+addopts = "--strict-markers"
 
 [tool.ruff]
 target-version = "py314"

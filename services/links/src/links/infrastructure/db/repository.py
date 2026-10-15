@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import LinkAlreadyExistError
-from links.infrastructure.models import ShortUrl
+from links.infrastructure.db.models import ShortUrl
 
 
 async def add_slug_to_datebase(

@@ -1,7 +1,6 @@
 import pytest
 from pydantic import HttpUrl
 
-
 from links.application.use_cases import (
     generate_custom_link,
     generate_short_url,
@@ -10,7 +9,10 @@ from links.domain.exceptions import (
     LinkAlreadyExistError,
     WrongUrlGivenError,
 )
-from links.infrastructure.repository import get_long_url_by_slug_from_database
+from links.infrastructure.db.repository import get_long_url_by_slug_from_database
+
+
+pytestmark = pytest.mark.integration
 
 
 async def test_generate_short_url(session, repository):

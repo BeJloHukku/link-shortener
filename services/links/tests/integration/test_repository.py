@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
 
+import pytest
+
+pytestmark = pytest.mark.integration
 
 async def test_expired_link(repository):
     await repository.add(

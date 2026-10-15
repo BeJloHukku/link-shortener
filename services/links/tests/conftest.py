@@ -1,5 +1,7 @@
 from typing import AsyncGenerator
 from unittest.mock import create_autospec
+from redis.asyncio import Redis
+from testcontainers.community.redis import RedisContainer
 
 import pytest
 from httpx import (
@@ -15,7 +17,7 @@ from sqlalchemy.ext.asyncio import (
 from links.api.dependencies import get_session, get_broker, get_cache_repository
 from links.application.ports import CacheRepository, MessageBroker
 from links.application.use_cases import GetRedirectUseCase
-from links.infrastructure.models import Base
+from links.infrastructure.db.models import Base
 from links.main import app
 
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -68,7 +70,7 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 def repository(session):
-    from links.infrastructure.repository import SqlAlchemyLinkRepository
+    from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 
     return SqlAlchemyLinkRepository(session)
 
@@ -100,3 +102,18 @@ def redirect_use_case(
         cache=mock_cache,
         broker=mock_broker,
     )
+
+
+@pytest.fixture(scope="session")
+def redis_container():
+    with RedisContainer("redis:7") as container:
+        yield container
+
+
+@pytest.fixture()
+async def redis_client(redis_container):
+    host = redis_container.get_container_host_ip()
+    port = redis_container.get_exposed_port(6379)
+    async with Redis(host=host, port=port, decode_responses=True) as client:
+        yield client
+        await client.flushdb()

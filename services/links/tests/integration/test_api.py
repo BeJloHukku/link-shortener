@@ -1,5 +1,8 @@
 from httpx import AsyncClient
 
+import pytest
+
+pytestmark = pytest.mark.integration
 
 async def test_root(ac: AsyncClient):
     result = await ac.get("/")

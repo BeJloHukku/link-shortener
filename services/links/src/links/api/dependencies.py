@@ -10,12 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from links.application.ports import LinkRepository, CacheRepository, MessageBroker
 from links.application.use_cases import GetRedirectUseCase
-from links.infrastructure.rabbitmq import get_rabbitmq_channel
-from links.infrastructure.rabbitmq_broker import RabbitMQBroker
-from links.infrastructure.db import new_session
-from links.infrastructure.redis_cache import RedisCacheRepository
-from links.infrastructure.repository import SqlAlchemyLinkRepository
-from links.infrastructure.redis import get_redis_client
+from links.infrastructure.broker.rabbitmq_settings import get_rabbitmq_channel
+from links.infrastructure.broker.rabbitmq import RabbitMQBroker
+from links.infrastructure.db.db import new_session
+from links.infrastructure.cache.redis import RedisCacheRepository
+from links.infrastructure.db.repository import SqlAlchemyLinkRepository
+from links.infrastructure.cache.redis_settings import get_redis_client
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
