@@ -1,20 +1,25 @@
+from datetime import datetime, timedelta
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import LinkAlreadyExistError
 from links.infrastructure.models import ShortUrl
 
 
 async def add_slug_to_datebase(
     slug: str,
-    long_url: str,
+    origin_url: str,
     session: AsyncSession,
+    last_accessed_at: datetime | None = None,
 ):
     new_slug = ShortUrl(
         slug=slug,
-        long_url=long_url,
+        origin_url=origin_url,
     )
+    if last_accessed_at is not None:
+        new_slug.last_accessed_at = last_accessed_at
     session.add(new_slug)
     try:
         await session.commit()
@@ -30,7 +35,11 @@ async def get_long_url_by_slug_from_database(
     query = select(ShortUrl).filter_by(slug=slug)
     result = await session.execute(query)
     res: ShortUrl | None = result.scalar_one_or_none()
-    return res.long_url if res else None
+    if res is not None:
+        last_access = res.last_accessed_at
+        if datetime.now() - last_access < timedelta(days=LinkExpirationPolicy.MAX_TTL_DAYS):
+            return res.origin_url
+    return None
 
 
 class SqlAlchemyLinkRepository:
@@ -40,12 +49,14 @@ class SqlAlchemyLinkRepository:
     async def add(
         self,
         slug: str,
-        long_url: str,
+        origin_url: str,
+        last_accessed_at: datetime | None = None,
     ) -> None:
         await add_slug_to_datebase(
             slug,
-            long_url,
+            origin_url,
             self.session,
+            last_accessed_at,
         )
 
     async def get_long_url(self, slug: str) -> str | None:

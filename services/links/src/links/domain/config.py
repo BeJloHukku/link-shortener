@@ -1,4 +1,4 @@
-class RedirectWorkerConfig:
+class LinkExpirationPolicy:
     MAX_TTL_DAYS = 30
     UPDATE_THRESHOLD_DAYS = 25
     UPDATE_THRESHOLD_SEC = UPDATE_THRESHOLD_DAYS * 24 * 60 * 60

@@ -1,7 +1,7 @@
 from links.application.ports import LinkRepository, CacheRepository, MessageBroker
 from links.application.retry import retry
 from links.application.dto import LinkWithSlugDTO
-from links.application.config import RedirectWorkerConfig
+from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import (
     NoLongUrlFoundError,
     SlugAlreadyExistError,
@@ -13,15 +13,15 @@ from links.domain.validation import validate_url
 
 @retry(times=10, exception=SlugAlreadyExistError)
 async def generate_short_url(
-    long_url: str,
+    origin_url: str,
     repository: LinkRepository,
 ) -> str:
     try:
-        validate_url(long_url)
+        validate_url(origin_url)
     except WrongUrlGivenError:
         raise WrongUrlGivenError
     slug = generate_random_slug()
-    await repository.add(slug, long_url)
+    await repository.add(slug, origin_url)
     return slug
 
 
@@ -54,7 +54,7 @@ class GetRedirectUseCase:
         cached_link = await self.cache.get_and_refresh_link(slug)
 
         if cached_link is not None:
-            if cached_link.ttl < RedirectWorkerConfig.UPDATE_THRESHOLD_SEC:
+            if cached_link.ttl < LinkExpirationPolicy.UPDATE_THRESHOLD_SEC:
                 await self.broker.publish_accessed_link_event(slug)
             return cached_link.origin_url
 

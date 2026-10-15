@@ -1,3 +1,6 @@
+from datetime import datetime
+from sqlalchemy.sql import func
+
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -13,4 +16,5 @@ class ShortUrl(Base):
     __tablename__ = "short_urls"
 
     slug: Mapped[str] = mapped_column(primary_key=True)
-    long_url: Mapped[str]
+    origin_url: Mapped[str]
+    last_accessed_at: Mapped[datetime] = mapped_column(default=func.now())

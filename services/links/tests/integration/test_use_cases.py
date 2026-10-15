@@ -19,10 +19,6 @@ async def test_generate_short_url(session, repository):
     assert len(result) == 6
 
 
-async def test_generate_short_url_already_exist(session, repository):
-    pass
-
-
 async def test_generate_short_url_wrong_url_error(session, repository):
     with pytest.raises(WrongUrlGivenError):
         await generate_short_url("not-a-url", repository)
@@ -37,8 +33,8 @@ async def test_generate_custom_link(session, repository):
     assert type(result) is str
     assert result == "mylink"
 
-    long_url = await get_long_url_by_slug_from_database(result, session)
-    assert long_url == "https://google.com/"
+    origin_url = await get_long_url_by_slug_from_database(result, session)
+    assert origin_url == "https://google.com/"
 
 
 async def test_generate_custom_link_already_exist_error(session, repository):
