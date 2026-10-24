@@ -1,3 +1,5 @@
+import logging
+
 from links.application.dto import LinkWithSlugDTO
 from links.application.ports import (
     CacheRepository,
@@ -13,6 +15,9 @@ from links.domain.exceptions import (
 )
 from links.domain.shortener import generate_random_slug
 from links.domain.validation import validate_url
+
+
+logger = logging.getLogger(__name__)
 
 
 @retry(times=10, exception=SlugAlreadyExistError)
@@ -59,7 +64,7 @@ class GetRedirectUseCase:
 
         if cached_link is not None:
             if cached_link.ttl < LinkExpirationPolicy.UPDATE_THRESHOLD_SEC:
-                await self.broker.publish_accessed_link_event(slug)
+                await self._notify_access(slug)
             return cached_link.origin_url
 
         origin_url = await self.db.get_long_url(slug)
@@ -70,6 +75,12 @@ class GetRedirectUseCase:
         link_dto = LinkWithSlugDTO(slug=slug, origin_url=origin_url)
         await self.cache.save_link(link_dto)
 
-        await self.broker.publish_accessed_link_event(slug)
+        await self._notify_access(slug)
 
         return origin_url
+
+    async def _notify_access(self, slug: str) -> None:
+        try:
+            await self.broker.publish_accessed_link_event(slug)
+        except Exception:
+            logger.exception("Не удалось опубликовать link.accessed для slug=%s", slug)

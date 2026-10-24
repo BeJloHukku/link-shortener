@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from links.api.routes import router
+from links.infrastructure.broker.rabbitmq import NullBroker, RabbitMQBroker
+from links.infrastructure.broker.rabbitmq_settings import connect_rabbitmq
 from links.infrastructure.db.db import engine
 from links.infrastructure.db.models import Base
 from links.settings import CORS_ORIGINS
@@ -19,7 +21,19 @@ from links.settings import CORS_ORIGINS
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
+
+    rabbit = await connect_rabbitmq()
+    if rabbit is None:
+        app.state.broker = NullBroker()
+    else:
+        _, exchange = rabbit
+        app.state.broker = RabbitMQBroker(exchange)
+    try:
+        yield
+    finally:
+        if rabbit is not None:
+            connection, _ = rabbit
+            await connection.close()
 
 
 app = FastAPI(lifespan=lifespan)

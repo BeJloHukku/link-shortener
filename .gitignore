@@ -35,3 +35,7 @@ htmlcov/
 .DS_Store
 .env*
 .ruff_cache/
+
+PLAN.md
+CLAUDE.md
+SKILL.md

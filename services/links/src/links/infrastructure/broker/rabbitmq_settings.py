@@ -1,27 +1,38 @@
-from typing import AsyncGenerator
+import logging
+
 
 import aio_pika
+from aio_pika import ExchangeType, RobustConnection
 from aio_pika.abc import (
-    AbstractChannel,
-    AbstractRobustConnection,
+    AbstractRobustExchange,
 )
 
 from links.settings import RABBITMQ_URL
 
-rabbitmq_connection: AbstractRobustConnection | None = None
+logger = logging.getLogger(__name__)
+
+LINKS_EXCHANGE = "links.events"
 
 
-async def _get_rabbitmq_connection() -> AbstractRobustConnection:
-    global rabbitmq_connection
-    if rabbitmq_connection is None or rabbitmq_connection.is_closed:
-        rabbitmq_connection = await aio_pika.connect_robust(RABBITMQ_URL)
+async def connect_rabbitmq() -> tuple[RobustConnection, AbstractRobustExchange] | None:
+    try:
+        connection = await aio_pika.connect_robust(
+            url=RABBITMQ_URL,
+            timeout=5,
+        )
+    except Exception:
+        logger.exception("RabbitMQ connection failed. Server starting without broker")
+        return None
 
-    assert rabbitmq_connection is not None
-    return rabbitmq_connection
+    try:
+        channel = await connection.channel()
+        exchange = await channel.declare_exchange(
+            name=LINKS_EXCHANGE,
+            type=ExchangeType.TOPIC,
+            durable=True,
+        )
+    except Exception:
+        logger.exception("Declaring exchange failed. Server starting without broker")
+        return None
 
-
-async def get_rabbitmq_channel() -> AsyncGenerator[AbstractChannel, None]:
-    """Генератор, который выдает изолированный канал и автоматически его закрывает."""
-    connection = await _get_rabbitmq_connection()
-    async with connection.channel() as channel:
-        yield channel
+    return connection, exchange

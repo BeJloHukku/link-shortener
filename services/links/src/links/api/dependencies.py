@@ -3,8 +3,7 @@ from typing import (
     AsyncGenerator,
 )
 
-from aio_pika.abc import AbstractRobustChannel
-from fastapi import Depends
+from fastapi import Depends, Request
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,8 +13,7 @@ from links.application.ports import (
     MessageBroker,
 )
 from links.application.use_cases import GetRedirectUseCase
-from links.infrastructure.broker.rabbitmq import RabbitMQBroker
-from links.infrastructure.broker.rabbitmq_settings import get_rabbitmq_channel
+
 from links.infrastructure.cache.redis import RedisCacheRepository
 from links.infrastructure.cache.redis_settings import get_redis_client
 from links.infrastructure.db.db import new_session
@@ -34,9 +32,9 @@ def get_repository(
 
 
 def get_broker(
-    channel: Annotated[AbstractRobustChannel, Depends(get_rabbitmq_channel)],
+    request: Request,
 ) -> MessageBroker:
-    return RabbitMQBroker(channel)
+    return request.app.state.broker
 
 
 def get_cache_repository(redis: Annotated[Redis, Depends(get_redis_client)]) -> CacheRepository:
