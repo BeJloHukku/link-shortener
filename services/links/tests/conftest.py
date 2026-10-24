@@ -1,7 +1,16 @@
-from typing import AsyncGenerator
+from typing import (
+    AsyncGenerator,
+    NamedTuple,
+)
 from unittest.mock import create_autospec
+from urllib.parse import quote
 
+import aio_pika
 import pytest
+from aio_pika.abc import (
+    AbstractExchange,
+    AbstractQueue,
+)
 from httpx import (
     ASGITransport,
     AsyncClient,
@@ -12,6 +21,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from testcontainers.community.rabbitmq import RabbitMqContainer
 from testcontainers.community.redis import RedisContainer
 
 from links.api.dependencies import (
@@ -24,6 +34,10 @@ from links.application.ports import (
     MessageBroker,
 )
 from links.application.use_cases import GetRedirectUseCase
+from links.infrastructure.broker.rabbitmq_settings import (
+    LAST_ACCESSED_DLQ,
+    declare_topology,
+)
 from links.infrastructure.db.models import Base
 from links.main import app
 
@@ -124,3 +138,43 @@ async def redis_client(redis_container):
     async with Redis(host=host, port=port, decode_responses=True) as client:
         yield client
         await client.flushdb()
+
+
+@pytest.fixture(scope="session")
+def rabbitmq_container():
+    with RabbitMqContainer("rabbitmq:4.1-management") as container:
+        yield container
+
+
+@pytest.fixture(scope="session")
+def amqp_url(rabbitmq_container: RabbitMqContainer):
+    c = rabbitmq_container
+    host = c.get_container_host_ip()
+    port = c.get_exposed_port(c.port)
+    vhost = quote(c.vhost, safe="")
+
+    return f"amqp://{c.username}:{c.password}@{host}:{port}/{vhost}"
+
+
+class RabbitMQ(NamedTuple):
+    exchange: AbstractExchange
+    queue: AbstractQueue
+    dlq: AbstractQueue
+
+
+@pytest.fixture()
+async def rabbitmq(amqp_url: str):
+    async with await aio_pika.connect_robust(url=amqp_url) as connection:
+        channel = await connection.channel()
+        exchange, queue = await declare_topology(channel)
+        dlq = await channel.get_queue(LAST_ACCESSED_DLQ)
+
+        yield RabbitMQ(
+            exchange=exchange,
+            queue=queue,
+            dlq=dlq,
+        )
+
+        await queue.delete()
+        await dlq.delete()
+        await exchange.delete()

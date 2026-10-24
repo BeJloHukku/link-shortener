@@ -6,9 +6,9 @@ from aio_pika import (
     RobustConnection,
 )
 from aio_pika.abc import (
+    AbstractChannel,
+    AbstractExchange,
     AbstractQueue,
-    AbstractRobustChannel,
-    AbstractRobustExchange,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,8 +20,8 @@ LINK_ACCESSED_ROUTING_KEY = "link.accessed"
 
 
 async def declare_topology(
-    channel: AbstractRobustChannel,
-) -> tuple[AbstractRobustExchange, AbstractQueue]:
+    channel: AbstractChannel,
+) -> tuple[AbstractExchange, AbstractQueue]:
     exchange = await channel.declare_exchange(
         name=LINKS_EXCHANGE,
         type=ExchangeType.TOPIC,
@@ -50,7 +50,7 @@ async def declare_topology(
     return exchange, queue
 
 
-async def connect_rabbitmq(url: str) -> tuple[RobustConnection, AbstractRobustExchange] | None:
+async def connect_rabbitmq(url: str) -> tuple[RobustConnection, AbstractExchange] | None:
     try:
         connection = await aio_pika.connect_robust(
             url=url,
