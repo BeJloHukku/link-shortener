@@ -16,7 +16,6 @@ from links.domain.exceptions import (
 from links.domain.shortener import generate_random_slug
 from links.domain.validation import validate_url
 
-
 logger = logging.getLogger(__name__)
 
 

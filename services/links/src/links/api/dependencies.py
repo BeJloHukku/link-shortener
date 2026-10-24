@@ -3,7 +3,10 @@ from typing import (
     AsyncGenerator,
 )
 
-from fastapi import Depends, Request
+from fastapi import (
+    Depends,
+    Request,
+)
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +16,6 @@ from links.application.ports import (
     MessageBroker,
 )
 from links.application.use_cases import GetRedirectUseCase
-
 from links.infrastructure.cache.redis import RedisCacheRepository
 from links.infrastructure.cache.redis_settings import get_redis_client
 from links.infrastructure.db.db import new_session

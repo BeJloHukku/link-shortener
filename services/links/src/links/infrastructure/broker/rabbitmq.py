@@ -1,17 +1,20 @@
-import json
-from datetime import datetime, UTC
 import logging
 import uuid
 
-from aio_pika import Message, DeliveryMode
+from aio_pika import (
+    DeliveryMode,
+    Message,
+)
 from aio_pika.abc import AbstractRobustExchange
 
 from links.application.events import LinkAccessedEvent
+from links.infrastructure.broker.rabbitmq_settings import LINK_ACCESSED_ROUTING_KEY
 
 logger = logging.getLogger(__name__)
 
-
-LINK_ACCESSED_ROUTING_KEY = "link.accessed"
+LINK_ACCESSED_EVENT_TYPE = "link.accessed"
+LINK_ACCESSED_EVENT_VERSION = 1
+LINK_ACCESSED_EVENT_PUBLISH_TIMEOUT = 1.0
 
 
 class NullBroker:
@@ -26,8 +29,8 @@ class RabbitMQBroker:
     async def publish_accessed_link_event(self, slug: str) -> None:
         event = LinkAccessedEvent(
             event_id=uuid.uuid4(),
-            event_type="link.accessed",
-            version=1,
+            event_type=LINK_ACCESSED_EVENT_TYPE,
+            version=LINK_ACCESSED_EVENT_VERSION,
             slug=slug,
         )
 
@@ -37,11 +40,11 @@ class RabbitMQBroker:
             content_encoding="utf-8",
             delivery_mode=DeliveryMode.PERSISTENT,
             message_id=str(event.event_id),
-            type="link.accessed",
+            type=LINK_ACCESSED_EVENT_TYPE,
         )
 
         await self._exchange.publish(
             message=message,
             routing_key=LINK_ACCESSED_ROUTING_KEY,
-            timeout=1.0,
+            timeout=LINK_ACCESSED_EVENT_PUBLISH_TIMEOUT,
         )
