@@ -1,0 +1,45 @@
+# Команды сервиса links. `just` без аргументов показывает список.
+
+# показать список команд
+default:
+    @just --list
+
+# установить зависимости из uv.lock
+sync:
+    uv sync --frozen
+
+# запустить API с автоперезагрузкой
+run:
+    uv run uvicorn links.main:app --app-dir src --reload
+
+# проверить импорты, линтер и форматирование
+lint:
+    uv run isort . --check-only
+    uv run ruff check .
+    uv run ruff format --check .
+
+# исправить и отформатировать код
+fmt:
+    uv run ruff check . --fix
+    uv run isort .
+    uv run ruff format .
+
+# все тесты; аргументы уходят в pytest: just test tests/unit -x
+test *args:
+    uv run pytest {{ args }}
+
+# тесты без Docker (без testcontainers)
+test-fast *args:
+    uv run pytest -m "not docker" {{ args }}
+
+# тесты только с Docker
+
+test-docker *args:
+    uv run pytest -v -m "docker" {{args}}
+
+# тесты с отчётом о покрытии
+cov *args:
+    uv run pytest --cov=links --cov-report=term-missing {{ args }}
+
+# линтер + все тесты, перед коммитом
+check: lint test

@@ -6,6 +6,22 @@
 
 Python 3.14.8 закреплён в `.python-version` и Dockerfile. Минимальные версии прямых зависимостей указаны в `pyproject.toml`, точные версии всех библиотек — в `uv.lock`. Для установки используйте актуальный uv с поддержкой скачивания Python 3.14.8.
 
+## Короткие команды
+
+Частые команды собраны в `justfile` (нужен [just](https://github.com/casey/just): `brew install just`):
+
+```bash
+just             # список команд
+just lint        # isort + ruff check + ruff format --check
+just fmt         # исправить и отформатировать
+just test        # все тесты; аргументы уходят в pytest: just test tests/unit -x
+just test-fast   # без тестов на Docker
+just test-docker # тесты только с Docker
+just check       # lint + test, перед коммитом
+```
+
+Ниже — те же команды без `just`.
+
 ## Запуск
 
 Команды выполняются из `services/links` при доступном PostgreSQL:
