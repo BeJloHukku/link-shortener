@@ -26,7 +26,7 @@ fmt:
 
 # все тесты; аргументы уходят в pytest: just test tests/unit -x
 test *args:
-    uv run pytest {{ args }}
+    uv run pytest -v {{ args }}
 
 # тесты без Docker (без testcontainers)
 test-fast *args:
