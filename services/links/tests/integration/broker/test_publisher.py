@@ -45,4 +45,3 @@ async def test_every_message_has_unique_id(rabbitmq):
     second_msg = await wait_message(queue)
 
     assert first_msg.message_id != second_msg.message_id
-
