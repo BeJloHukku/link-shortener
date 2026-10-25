@@ -1,4 +1,5 @@
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     Field,
 )
@@ -14,3 +15,8 @@ class CachedLinkDTO(LinkDTO):
 
 class LinkWithSlugDTO(LinkDTO):
     slug: str = Field(description="Shortened or customized slug")
+
+
+class LinkAccessDTO(BaseModel):
+    slug: str = Field(description="Slug")
+    accessed_at: AwareDatetime = Field(description="Accessed time in UTC")

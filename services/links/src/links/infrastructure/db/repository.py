@@ -1,13 +1,19 @@
 from datetime import (
+    UTC,
     datetime,
     timedelta,
-    UTC,
 )
+from typing import cast
 
-from sqlalchemy import select, update, Result
+from sqlalchemy import (
+    CursorResult,
+    select,
+    update,
+)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from links.application.dto import LinkAccessDTO
 from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import LinkAlreadyExistError
 from links.infrastructure.db.models import ShortUrl
@@ -67,21 +73,20 @@ class SqlAlchemyLinkRepository:
     async def get_long_url(self, slug: str) -> str | None:
         return await get_long_url_by_slug_from_database(slug, self.session)
 
-    async def touch(self, slug: str, accessed_at: datetime) -> datetime | None:
-        accessed_at = accessed_at.astimezone(UTC).replace(tzinfo=None)
+    async def touch(self, link: LinkAccessDTO) -> bool:
+        accessed_at = link.accessed_at.astimezone(UTC).replace(tzinfo=None)
 
         query = (
             update(ShortUrl)
-            .where(ShortUrl.slug == slug and ShortUrl.last_accessed_at < accessed_at)
+            .where(
+                ShortUrl.slug == link.slug,
+                ShortUrl.last_accessed_at < accessed_at,
+            )
             .values(last_accessed_at=accessed_at)
-            .returning(ShortUrl)
         )
 
-        result = await self.session.execute(query)
-        short_url = result.scalar_one_or_none()
+        result = cast(CursorResult, await self.session.execute(query))
 
         await self.session.commit()
 
-        if short_url is not None:
-            return short_url.last_accessed_at
-        return None
+        return result.rowcount > 0

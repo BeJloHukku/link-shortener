@@ -1,6 +1,10 @@
 import logging
+from datetime import datetime
 
-from links.application.dto import LinkWithSlugDTO
+from links.application.dto import (
+    LinkAccessDTO,
+    LinkWithSlugDTO,
+)
 from links.application.ports import (
     CacheRepository,
     LinkRepository,
@@ -83,3 +87,23 @@ class GetRedirectUseCase:
             await self.broker.publish_accessed_link_event(slug)
         except Exception:
             logger.exception("Не удалось опубликовать link.accessed для slug=%s", slug)
+
+
+class RecordLinkAccessUseCase:
+    def __init__(
+        self,
+        db: LinkRepository,
+    ):
+        self.db = db
+
+    async def execute(
+        self,
+        slug: str,
+        accessed_at: datetime,
+    ) -> bool:
+        link = LinkAccessDTO(
+            slug=slug,
+            accessed_at=accessed_at,
+        )
+
+        return await self.db.touch(link)

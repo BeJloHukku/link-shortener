@@ -1,8 +1,8 @@
-from datetime import datetime
 from typing import Protocol
 
 from links.application.dto import (
     CachedLinkDTO,
+    LinkAccessDTO,
     LinkWithSlugDTO,
 )
 
@@ -18,9 +18,8 @@ class LinkRepository(Protocol):
 
     async def touch(
         self,
-        slug: str,
-        accessed_at: datetime,
-    ) -> str | None: ...
+        link: LinkAccessDTO,
+    ) -> bool: ...
 
 
 class CacheRepository(Protocol):
