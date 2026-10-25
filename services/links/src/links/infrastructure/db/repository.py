@@ -1,9 +1,10 @@
 from datetime import (
     datetime,
     timedelta,
+    UTC,
 )
 
-from sqlalchemy import select
+from sqlalchemy import select, update, Result
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -65,3 +66,22 @@ class SqlAlchemyLinkRepository:
 
     async def get_long_url(self, slug: str) -> str | None:
         return await get_long_url_by_slug_from_database(slug, self.session)
+
+    async def touch(self, slug: str, accessed_at: datetime) -> datetime | None:
+        accessed_at = accessed_at.astimezone(UTC).replace(tzinfo=None)
+
+        query = (
+            update(ShortUrl)
+            .where(ShortUrl.slug == slug and ShortUrl.last_accessed_at < accessed_at)
+            .values(last_accessed_at=accessed_at)
+            .returning(ShortUrl)
+        )
+
+        result = await self.session.execute(query)
+        short_url = result.scalar_one_or_none()
+
+        await self.session.commit()
+
+        if short_url is not None:
+            return short_url.last_accessed_at
+        return None

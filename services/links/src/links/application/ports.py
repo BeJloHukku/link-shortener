@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Protocol
 
 from links.application.dto import (
@@ -14,6 +15,12 @@ class LinkRepository(Protocol):
     ) -> None: ...
 
     async def get_long_url(self, slug: str) -> str | None: ...
+
+    async def touch(
+        self,
+        slug: str,
+        accessed_at: datetime,
+    ) -> str | None: ...
 
 
 class CacheRepository(Protocol):
