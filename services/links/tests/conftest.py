@@ -31,6 +31,7 @@ from links.api.dependencies import (
 )
 from links.application.ports import (
     CacheRepository,
+    LinkRepository,
     MessageBroker,
 )
 from links.application.use_cases import GetRedirectUseCase
@@ -39,6 +40,7 @@ from links.infrastructure.broker.rabbitmq_settings import (
     declare_topology,
 )
 from links.infrastructure.db.models import Base
+from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 from links.main import app
 
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -77,10 +79,18 @@ async def setup_db():
     yield
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def session():
     async with new_session() as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+async def clean_db():
+    async with engine.begin() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(table.delete())
+    yield
 
 
 @pytest.fixture(scope="session")
@@ -91,7 +101,6 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 def repository(session):
-    from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 
     return SqlAlchemyLinkRepository(session)
 
