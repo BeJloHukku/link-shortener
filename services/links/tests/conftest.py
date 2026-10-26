@@ -10,6 +10,7 @@ import pytest
 from aio_pika.abc import (
     AbstractExchange,
     AbstractQueue,
+    AbstractRobustConnection,
 )
 from httpx import (
     ASGITransport,
@@ -31,7 +32,6 @@ from links.api.dependencies import (
 )
 from links.application.ports import (
     CacheRepository,
-    LinkRepository,
     MessageBroker,
 )
 from links.application.use_cases import GetRedirectUseCase
@@ -166,6 +166,7 @@ def amqp_url(rabbitmq_container: RabbitMqContainer):
 
 
 class RabbitMQ(NamedTuple):
+    connection: AbstractRobustConnection
     exchange: AbstractExchange
     queue: AbstractQueue
     dlq: AbstractQueue
@@ -179,6 +180,7 @@ async def rabbitmq(amqp_url: str):
         dlq = await channel.get_queue(LAST_ACCESSED_DLQ)
 
         yield RabbitMQ(
+            connection=connection,
             exchange=exchange,
             queue=queue,
             dlq=dlq,
