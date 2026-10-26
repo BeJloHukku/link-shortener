@@ -79,9 +79,9 @@ async def count_messages(queue: AbstractQueue) -> int:
 
 
 def generate_link_accessed_event_json(
-        version: int,
-        event_type: str,
-        slug: str,
+    version: int,
+    event_type: str,
+    slug: str,
 ) -> str:
     return json.dumps(
         {

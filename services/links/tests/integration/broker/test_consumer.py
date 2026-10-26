@@ -3,16 +3,21 @@ import json
 from dataclasses import dataclass
 
 import pytest
-
-from links.infrastructure.broker.rabbitmq_settings import LAST_ACCESSED_QUEUE
 from tests.integration.broker.helpers import (
     count_messages,
-    eventually, publish_raw, wait_message, generate_link_accessed_event_json,
+    eventually,
+    generate_link_accessed_event_json,
+    publish_raw,
+    wait_message,
 )
 
 from links.application.events import LinkAccessedEvent
 from links.infrastructure.broker.consumer import LinkAccessedConsumer
-from links.infrastructure.broker.rabbitmq import RabbitMQBroker, LINK_ACCESSED_EVENT_TYPE
+from links.infrastructure.broker.rabbitmq import (
+    LINK_ACCESSED_EVENT_TYPE,
+    RabbitMQBroker,
+)
+from links.infrastructure.broker.rabbitmq_settings import LAST_ACCESSED_QUEUE
 
 pytestmark = [pytest.mark.docker, pytest.mark.integration]
 
@@ -64,6 +69,7 @@ async def test_happy_path(rabbitmq):
     assert mgs_in_queue == 0
     assert mgs_in_dlq == 0
 
+
 @dataclass
 class InvalidEvent:
     name: str
@@ -100,6 +106,7 @@ TEST_CASES = [
         ).encode("utf-8"),
     ),
 ]
+
 
 @pytest.mark.parametrize(
     "case",
@@ -151,7 +158,7 @@ async def test_message_sent_to_dlq_with_exception_while_handler_processing(rabbi
     assert msg_in_dlq == 1
 
     msg = await wait_message(rabbitmq.dlq)
-    assert json.loads(msg.body.decode("utf-8"))['slug'] == FAKE_SLUG
+    assert json.loads(msg.body.decode("utf-8"))["slug"] == FAKE_SLUG
 
 
 STOP_TIMEOUT = 0.5
