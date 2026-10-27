@@ -37,6 +37,10 @@ markers = [
     "docker: tests that need real Docker containers",
 ]
 addopts = "--strict-markers"
+filterwarnings = [
+    # testcontainers 4.15: внутренности библиотеки (community/rabbitmq)
+    "ignore:The @wait_container_is_ready decorator is deprecated:DeprecationWarning",
+]
 
 [tool.ruff]
 target-version = "py314"
