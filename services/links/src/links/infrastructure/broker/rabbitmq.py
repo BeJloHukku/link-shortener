@@ -5,7 +5,7 @@ from aio_pika import (
     DeliveryMode,
     Message,
 )
-from aio_pika.abc import AbstractRobustExchange
+from aio_pika.abc import AbstractExchange
 
 from links.application.events import LinkAccessedEvent
 from links.infrastructure.broker.rabbitmq_settings import LINK_ACCESSED_ROUTING_KEY
@@ -23,7 +23,7 @@ class NullBroker:
 
 
 class RabbitMQBroker:
-    def __init__(self, exchange: AbstractRobustExchange) -> None:
+    def __init__(self, exchange: AbstractExchange) -> None:
         self._exchange = exchange
 
     async def publish_accessed_link_event(self, slug: str) -> None:
