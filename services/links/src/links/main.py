@@ -46,17 +46,6 @@ async def lifespan(_application: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-
-def documented_openapi():
-    if app.openapi_schema is None:
-        app.openapi_schema = json.loads(
-            Path(__file__).with_name("openapi.json").read_text(encoding="utf-8")
-        )
-    return app.openapi_schema
-
-
-app.openapi = documented_openapi
-
 # noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
