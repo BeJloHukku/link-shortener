@@ -43,11 +43,11 @@ async def generate_slug(
 ):
     try:
         new_slug = await generate_short_url(str(link.origin_url), repository)
-    except SlugAlreadyExistError:
+    except SlugAlreadyExistError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось сжать ссылку. Попробуйте позже!",
-        )
+        ) from exc
     return {"data": new_slug}
 
 
@@ -59,11 +59,11 @@ async def create_custom_link(
     try:
         custom_link = await generate_custom_link(data, repository)
         return {"data": custom_link}
-    except LinkAlreadyExistError:
+    except LinkAlreadyExistError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Такая ссылка уже существует! Попробуйте ввести другую!",
-        )
+        ) from exc
 
 
 @router.get("/{slug}")
@@ -73,11 +73,11 @@ async def redirect_to_origin(
 ) -> RedirectResponse:
     try:
         origin_url = await redirect_use_case.execute(slug=slug)
-    except NoLongUrlFoundError:
+    except NoLongUrlFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ссылка не существует",
-        )
+        ) from exc
     return RedirectResponse(
         url=origin_url,
         status_code=status.HTTP_302_FOUND,

@@ -15,7 +15,6 @@ from links.domain.config import LinkExpirationPolicy
 from links.domain.exceptions import (
     NoLongUrlFoundError,
     SlugAlreadyExistError,
-    WrongUrlGivenError,
 )
 from links.domain.shortener import generate_random_slug
 from links.domain.validation import validate_url
@@ -28,10 +27,7 @@ async def generate_short_url(
     origin_url: str,
     repository: LinkRepository,
 ) -> str:
-    try:
-        validate_url(origin_url)
-    except WrongUrlGivenError:
-        raise WrongUrlGivenError
+    validate_url(origin_url)
     slug = generate_random_slug()
     await repository.add(slug, origin_url)
     return slug
@@ -43,10 +39,7 @@ async def generate_custom_link(
 ) -> str:
     origin_url = str(data.origin_url)
     custom_url = data.custom_url
-    try:
-        validate_url(origin_url)
-    except WrongUrlGivenError:
-        raise WrongUrlGivenError
+    validate_url(origin_url)
     await repository.add(custom_url, origin_url)
     return custom_url
 
@@ -85,7 +78,7 @@ class GetRedirectUseCase:
     async def _notify_access(self, slug: str) -> None:
         try:
             await self.broker.publish_accessed_link_event(slug)
-        except Exception:
+        except Exception: # pylint: disable=broad-exception-caught
             logger.exception("Не удалось опубликовать link.accessed для slug=%s", slug)
 
 

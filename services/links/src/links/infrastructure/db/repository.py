@@ -34,9 +34,9 @@ async def add_slug_to_datebase(
     session.add(new_slug)
     try:
         await session.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         await session.rollback()
-        raise LinkAlreadyExistError
+        raise LinkAlreadyExistError from exc
 
 
 async def get_long_url_by_slug_from_database(

@@ -34,9 +34,15 @@ services:
   links:
     build:
       context: ../services/links
-    profiles: ["prod"]
+    profiles: ["dev"]
     depends_on:
       db:
+        condition: service_healthy
+      alembic-migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     environment:
       - DB_HOST=db
@@ -44,9 +50,67 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=postgres
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
     ports:
       - "8000:8000"
 
+  links-refresh-worker:
+    build:
+      context: ../services/links
+    command: ["python", "-m", "links.worker"]
+    profiles: [ "dev" ]
+    depends_on:
+      db:
+        condition: service_healthy
+      alembic-migrator:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
+    stop_grace_period: 30s
+    restart: on-failure
+
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    profiles: ["dev"]
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    profiles: [ "dev" ]
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
   postgres_data:
+  rabbitmq_data:

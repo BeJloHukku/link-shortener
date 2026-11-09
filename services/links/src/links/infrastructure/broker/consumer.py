@@ -44,7 +44,7 @@ class LinkAccessedConsumer:
         try:
             await asyncio.wait_for(self._idle.wait(), timeout=timeout)
         except asyncio.TimeoutError:
-            logger.warning(f"Timeout of {self._in_flight} messages, returning to queue")
+            logger.warning("Timeout of %s messages, returning to queue", self._in_flight)
 
     async def _on_message(self, message: AbstractIncomingMessage) -> None:
         try:
@@ -61,7 +61,9 @@ class LinkAccessedConsumer:
             event = LinkAccessedEvent.model_validate_json(message.body)
         except ValidationError:
             logger.warning(
-                f"Invalid message from {self._queue.name}: message_id={message.message_id}. Sent to DLQ"
+                "Invalid message from %s: %s. Sent to DLQ",
+                self._queue.name,
+                message.message_id,
             )
             await message.reject(requeue=False)
             return
@@ -69,7 +71,8 @@ class LinkAccessedConsumer:
         try:
             async with message.process():
                 await self._handler(event)
-        except Exception:
+        except Exception: # pylint: disable=broad-exception-caught
             logger.exception(
-                f"Exception while processing message_id: {event.event_id}. Sent to DLQ"
+                "Exception while processing message_id: %s. Sent to DLQ",
+                event.event_id,
             )

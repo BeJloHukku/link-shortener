@@ -39,7 +39,7 @@ def make_handler(session_factory: async_sessionmaker[AsyncSession]) -> Handler:
                 accessed_at=event.occurred_at,
             )
             if not is_replaced:
-                logger.info(f"Event {event.event_id} did not replace link {event.slug}")
+                logger.info("Event %s did not replace link %s", event.event_id, event.slug)
 
     return handler
 

@@ -136,7 +136,7 @@ def redirect_use_case(
 
 @pytest.fixture(scope="session")
 def redis_container():
-    with RedisContainer("redis:7") as container:
+    with RedisContainer("redis:8-alpine") as container:
         yield container
 
 

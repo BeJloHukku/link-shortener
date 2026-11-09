@@ -1,4 +1,6 @@
+import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import (
     FastAPI,
@@ -24,7 +26,7 @@ from links.settings import (
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_application: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -44,6 +46,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
+def documented_openapi():
+    if app.openapi_schema is None:
+        app.openapi_schema = json.loads(
+            Path(__file__).with_name("openapi.json").read_text(encoding="utf-8")
+        )
+    return app.openapi_schema
+
+
+app.openapi = documented_openapi
+
 # noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
@@ -55,7 +68,7 @@ app.add_middleware(
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(_request: Request, _exc: RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"detail": "Неверный формат ввода!"},
