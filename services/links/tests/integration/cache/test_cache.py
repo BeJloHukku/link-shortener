@@ -35,7 +35,7 @@ async def test_cache_get_link(redis_client: Redis):
     repo = RedisCacheRepository(redis=redis_client)
     link = FAKE_LINK
     await repo.save_link(link)
-    link = await repo.get_and_refresh_link(link.slug)
+    link = await repo.get_link(link.slug)
 
     assert link is not None
     assert link.origin_url == FAKE_ORIGIN_URL
@@ -45,12 +45,12 @@ async def test_cache_get_link_not_found(redis_client: Redis):
     repo = RedisCacheRepository(redis=redis_client)
     link = FAKE_LINK
     await repo.save_link(link)
-    link = await repo.get_and_refresh_link("not-found")
+    link = await repo.get_link("not-found")
 
     assert link is None
 
 
-async def test_cache_get_link_and_refresh(redis_client: Redis):
+async def test_cache_get_link_does_not_refresh_ttl(redis_client: Redis):
     repo = RedisCacheRepository(redis=redis_client)
     link = FAKE_LINK
     await repo.save_link(link)
@@ -59,14 +59,34 @@ async def test_cache_get_link_and_refresh(redis_client: Redis):
         time=100,
     )
 
-    cached_link = await repo.get_and_refresh_link(link.slug)
+    cached_link = await repo.get_link(link.slug)
     assert cached_link is not None
     previous_ttl = cached_link.ttl
-    assert previous_ttl <= 100
+    assert 0 < previous_ttl <= 100
     current_ttl = await redis_client.ttl(f"{REDIS_LINK}")
+    assert 0 < current_ttl <= previous_ttl
+
+
+async def test_cache_refresh_ttl(redis_client: Redis):
+    repo = RedisCacheRepository(redis=redis_client)
+    await repo.save_link(FAKE_LINK)
+    await redis_client.expire(REDIS_LINK, 100)
+
+    await repo.refresh_ttl(FAKE_SLUG)
+
+    assert await redis_client.get(REDIS_LINK) == FAKE_ORIGIN_URL
+    current_ttl = await redis_client.ttl(REDIS_LINK)
     start = LinkExpirationPolicy.MAX_TTL_SECONDS - TIMEDELTA_SECONDS
     end = LinkExpirationPolicy.MAX_TTL_SECONDS
     assert start <= current_ttl <= end
+
+
+async def test_cache_refresh_ttl_missing_link(redis_client: Redis):
+    repo = RedisCacheRepository(redis=redis_client)
+
+    await repo.refresh_ttl(FAKE_SLUG)
+
+    assert await repo.get_link(FAKE_SLUG) is None
 
 
 async def test_cache_get_link_expired(redis_client: Redis):
@@ -78,5 +98,5 @@ async def test_cache_get_link_expired(redis_client: Redis):
         time=10,
     )
     await asyncio.sleep(0.2)
-    cached_link = await repo.get_and_refresh_link(link.slug)
+    cached_link = await repo.get_link(link.slug)
     assert cached_link is None

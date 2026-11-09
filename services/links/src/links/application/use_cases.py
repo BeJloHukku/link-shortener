@@ -5,6 +5,7 @@ from links.application.dto import (
     LinkAccessDTO,
     LinkWithSlugDTO,
 )
+from links.application.exceptions import BrokerUnavailableError
 from links.application.ports import (
     CacheRepository,
     LinkRepository,
@@ -56,11 +57,12 @@ class GetRedirectUseCase:
         self.broker = broker
 
     async def execute(self, slug: str) -> str:
-        cached_link = await self.cache.get_and_refresh_link(slug)
+        cached_link = await self.cache.get_link(slug)
 
         if cached_link is not None:
             if cached_link.ttl < LinkExpirationPolicy.UPDATE_THRESHOLD_SEC:
-                await self._notify_access(slug)
+                if await self._notify_access(slug):
+                    await self.cache.refresh_ttl(slug)
             return cached_link.origin_url
 
         origin_url = await self.db.get_long_url(slug)
@@ -75,11 +77,18 @@ class GetRedirectUseCase:
 
         return origin_url
 
-    async def _notify_access(self, slug: str) -> None:
+    async def _notify_access(self, slug: str) -> bool:
         try:
             await self.broker.publish_accessed_link_event(slug)
+        except BrokerUnavailableError:
+            logger.warning(
+                "Брокер недоступен, событие link.accessed для slug=%s не отправлено", slug
+            )
         except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Не удалось опубликовать link.accessed для slug=%s", slug)
+        else:
+            return True
+        return False
 
 
 class RecordLinkAccessUseCase:

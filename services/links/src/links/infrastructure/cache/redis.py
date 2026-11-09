@@ -22,11 +22,11 @@ class RedisCacheRepository:
             ex=self._ttl,
         )
 
-    async def get_and_refresh_link(self, slug: str) -> CachedLinkDTO | None:
+    async def get_link(self, slug: str) -> CachedLinkDTO | None:
         key = f"link:{slug}"
         async with self._redis.pipeline() as pipe:
             pipe.ttl(key)
-            pipe.getex(key, ex=self._ttl)
+            pipe.get(key)
             ttl, origin_url = await pipe.execute()
 
         if origin_url is None:
@@ -35,3 +35,6 @@ class RedisCacheRepository:
             ttl=ttl,
             origin_url=origin_url,
         )
+
+    async def refresh_ttl(self, slug: str) -> None:
+        await self._redis.expire(f"link:{slug}", self._ttl)

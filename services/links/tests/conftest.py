@@ -62,7 +62,7 @@ def get_test_broker():
 
 def get_test_cache():
     mock = create_autospec(CacheRepository, instance=True)
-    mock.get_and_refresh_link.return_value = None
+    mock.get_link.return_value = None
     return mock
 
 
@@ -109,7 +109,7 @@ def repository(session):
 def mock_cache():
     """Fixture for CacheRepository"""
     mock = create_autospec(CacheRepository, instance=True)
-    mock.get_and_refresh_link.return_value = None
+    mock.get_link.return_value = None
     return mock
 
 
