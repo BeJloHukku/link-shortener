@@ -56,14 +56,14 @@ async def connect_rabbitmq(url: str) -> tuple[RobustConnection, AbstractExchange
             url=url,
             timeout=5,
         )
-    except Exception: # pylint: disable=broad-exception-caught
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("RabbitMQ connection failed. Server starting without broker")
         return None
 
     try:
         channel = await connection.channel()
         exchange, _ = await declare_topology(channel)
-    except Exception: # pylint: disable=broad-exception-caught
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Declaring topology failed. Server starting without broker")
         return None
 

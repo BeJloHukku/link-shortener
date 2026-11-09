@@ -78,7 +78,7 @@ class GetRedirectUseCase:
     async def _notify_access(self, slug: str) -> None:
         try:
             await self.broker.publish_accessed_link_event(slug)
-        except Exception: # pylint: disable=broad-exception-caught
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Не удалось опубликовать link.accessed для slug=%s", slug)
 
 

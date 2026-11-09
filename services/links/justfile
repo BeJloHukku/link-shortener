@@ -17,6 +17,8 @@ lint:
     uv run isort . --check-only
     uv run ruff check .
     uv run ruff format --check .
+    uv run pylint ./src/
+    uv run bandit ./src/
 
 # исправить и отформатировать код
 fmt:

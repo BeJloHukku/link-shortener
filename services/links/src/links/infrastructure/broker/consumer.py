@@ -71,7 +71,7 @@ class LinkAccessedConsumer:
         try:
             async with message.process():
                 await self._handler(event)
-        except Exception: # pylint: disable=broad-exception-caught
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.exception(
                 "Exception while processing message_id: %s. Sent to DLQ",
                 event.event_id,

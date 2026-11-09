@@ -15,12 +15,17 @@ from sqlalchemy.ext.asyncio import (
 
 from links.application.events import LinkAccessedEvent
 from links.application.use_cases import RecordLinkAccessUseCase
-from links.infrastructure.broker.consumer import LinkAccessedConsumer
+from links.infrastructure.broker.consumer import (
+    Handler,
+    LinkAccessedConsumer,
+)
 from links.infrastructure.broker.rabbitmq_settings import declare_topology
-from links.infrastructure.db.db import engine, new_session
+from links.infrastructure.db.db import (
+    engine,
+    new_session,
+)
 from links.infrastructure.db.repository import SqlAlchemyLinkRepository
 from links.settings import RABBITMQ_URL
-from links.infrastructure.broker.consumer import Handler
 
 CONNECTION_RABBITMQ_TIMEOUT = 5.0
 PREFETCH_COUNT = 20
